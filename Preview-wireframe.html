@@ -1,0 +1,2249 @@
+<!DOCTYPE html>
+<html
+	lang="id"
+	class="scroll-smooth">
+	<head>
+		<meta charset="UTF-8" />
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1.0" />
+		<title>POS Mie Jawa Melati - Full Wireframe</title>
+		<script src="https://cdn.tailwindcss.com"></script>
+		<link
+			href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+			rel="stylesheet" />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+			rel="stylesheet" />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap"
+			rel="stylesheet" />
+		<!-- SweetAlert2 untuk notifikasi cantik -->
+		<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+		<!-- Chart.js untuk grafik laporan -->
+		<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+		<!-- SheetJS untuk simulasi export excel -->
+		<script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+
+		<style>
+			body {
+				font-family: 'Inter', sans-serif;
+			}
+
+			/* Font khusus struk */
+			.font-receipt {
+				font-family: 'Space Mono', monospace;
+			}
+
+			/* Custom Scrollbar yang halus dan tersembunyi */
+			.hide-scroll::-webkit-scrollbar {
+				display: none;
+			}
+			.hide-scroll {
+				-ms-overflow-style: none;
+				scrollbar-width: none;
+			}
+			.custom-scrollbar::-webkit-scrollbar {
+				width: 4px;
+			}
+			.custom-scrollbar::-webkit-scrollbar-track {
+				background: transparent;
+			}
+			.custom-scrollbar::-webkit-scrollbar-thumb {
+				background: #e5e7eb;
+				border-radius: 4px;
+			}
+
+			.btn-press:active {
+				transform: scale(0.95);
+				transition: transform 0.1s;
+			}
+
+			/* Device Frames Styles */
+			.device-frame {
+				@apply bg-gray-50 border-gray-900 overflow-hidden shadow-2xl relative flex flex-col transition-all duration-500 ease-in-out;
+				/* Default center alignment */
+				margin-left: auto;
+				margin-right: auto;
+			}
+
+			/* --- VIEWPORT CONFIGURATIONS --- */
+
+			/* MOBILE VIEW */
+			#main-container.view-mobile {
+				align-items: center;
+				padding-top: 2rem;
+			}
+			#main-container.view-mobile .device-frame {
+				width: 375px;
+				height: 812px;
+				border-width: 14px;
+				border-radius: 3rem;
+				box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+			}
+			/* Mobile Specific Logic */
+			#main-container.view-mobile .desktop-only {
+				display: none !important;
+			}
+			#main-container.view-mobile .mobile-only {
+				display: flex !important;
+			}
+			#main-container.view-mobile .grid-cols-dynamic {
+				grid-template-columns: repeat(2, 1fr);
+				gap: 0.75rem;
+			}
+			#main-container.view-mobile .p-responsive {
+				padding: 1rem;
+			} /* Padding lebih kecil di HP */
+			#main-container.view-mobile .text-responsive-title {
+				font-size: 1rem;
+			} /* Font judul lebih kecil */
+
+			/* TABLET VIEW */
+			#main-container.view-tablet {
+				align-items: center;
+				padding-top: 2rem;
+			}
+			#main-container.view-tablet .device-frame {
+				width: 768px;
+				height: 1024px;
+				border-width: 16px;
+				border-radius: 2rem;
+			}
+			#main-container.view-tablet .desktop-only {
+				display: none !important;
+			}
+			#main-container.view-tablet .mobile-only {
+				display: flex !important;
+			}
+			#main-container.view-tablet .grid-cols-dynamic {
+				grid-template-columns: repeat(3, 1fr);
+				gap: 1rem;
+			}
+			#main-container.view-tablet .p-responsive {
+				padding: 1.5rem;
+			}
+
+			/* DESKTOP VIEW */
+			#main-container.view-desktop {
+				align-items: flex-start;
+				padding: 2rem;
+			}
+			#main-container.view-desktop .device-frame {
+				width: 100%;
+				max-width: 1440px;
+				height: 850px;
+				border-width: 4px;
+				border-radius: 0.75rem;
+				border-color: #e5e7eb;
+			}
+			#main-container.view-desktop .desktop-only {
+				display: flex !important;
+			}
+			#main-container.view-desktop .mobile-only {
+				display: none !important;
+			}
+			#main-container.view-desktop .grid-cols-dynamic {
+				grid-template-columns: repeat(4, 1fr);
+				gap: 1.5rem;
+			}
+			#main-container.view-desktop .p-responsive {
+				padding: 2rem;
+			}
+
+			/* Animation classes */
+			.slide-up {
+				animation: slideUp 0.3s ease-out;
+			}
+			@keyframes slideUp {
+				from {
+					transform: translateY(100%);
+				}
+				to {
+					transform: translateY(0);
+				}
+			}
+
+			/* Sidebar active state */
+			.nav-item.active {
+				@apply bg-blue-50 text-blue-700 font-semibold border-l-4 border-blue-600;
+			}
+			.nav-item.inactive {
+				@apply text-gray-500 hover:bg-gray-50 hover:text-gray-900 border-l-4 border-transparent;
+			}
+
+			/* Efek kertas sobek untuk struk */
+			.receipt-jagged {
+				position: relative;
+				background: white;
+			}
+			.receipt-jagged::after {
+				content: '';
+				position: absolute;
+				bottom: -10px;
+				left: 0;
+				width: 100%;
+				height: 10px;
+				background: linear-gradient(
+						45deg,
+						transparent 33.333%,
+						#ffffff 33.333%,
+						#ffffff 66.667%,
+						transparent 66.667%
+					),
+					linear-gradient(
+						-45deg,
+						transparent 33.333%,
+						#ffffff 33.333%,
+						#ffffff 66.667%,
+						transparent 66.667%
+					);
+				background-size: 20px 20px;
+				background-position: 0 0;
+			}
+		</style>
+	</head>
+	<body class="bg-gray-100 min-h-screen flex flex-col">
+		<!-- Top Control Bar -->
+		<div
+			class="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm px-4 py-3">
+			<div
+				class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-4">
+				<div>
+					<h1
+						class="text-lg font-bold text-gray-900 flex items-center gap-2">
+						<i class="fas fa-cash-register text-blue-600"></i> POS
+						Wireframe v8
+					</h1>
+					<p class="text-xs text-gray-500">
+						Fitur Lengkap: Nota Transaksi (Receipt)
+					</p>
+				</div>
+
+				<div class="flex items-center gap-3">
+					<!-- Status Toggle -->
+					<button
+						onclick="toggleOnline()"
+						id="btn-status"
+						class="px-3 py-1.5 text-xs font-bold bg-green-100 text-green-700 rounded-full border border-green-200 flex items-center gap-2 transition hover:bg-green-200 cursor-pointer">
+						<span
+							class="w-2 h-2 rounded-full bg-green-600 animate-pulse"></span>
+						Online
+					</button>
+
+					<div class="h-6 w-px bg-gray-300 mx-1"></div>
+
+					<!-- View Switcher -->
+					<div class="bg-gray-100 p-1 rounded-lg flex">
+						<button
+							onclick="setView('mobile')"
+							id="btn-view-mobile"
+							class="p-2 px-3 rounded-md hover:bg-white hover:shadow-sm text-gray-600 transition text-xs font-medium flex items-center gap-2"
+							title="Mobile">
+							<i class="fas fa-mobile-alt"></i> Mobile
+						</button>
+						<button
+							onclick="setView('tablet')"
+							id="btn-view-tablet"
+							class="p-2 px-3 rounded-md hover:bg-white hover:shadow-sm text-gray-600 transition text-xs font-medium flex items-center gap-2"
+							title="Tablet">
+							<i class="fas fa-tablet-alt"></i> Tablet
+						</button>
+						<button
+							onclick="setView('desktop')"
+							id="btn-view-desktop"
+							class="p-2 px-3 rounded-md bg-white shadow-sm text-blue-600 transition text-xs font-medium flex items-center gap-2"
+							title="Desktop">
+							<i class="fas fa-desktop"></i> Desktop
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Main Workspace -->
+		<div
+			id="main-container"
+			class="flex-1 overflow-auto view-desktop bg-gray-200 transition-colors duration-500">
+			<!-- THE APP FRAME -->
+			<div class="device-frame bg-gray-50">
+				<div class="flex h-full w-full overflow-hidden relative">
+					<!-- SIDEBAR NAVIGATION (Desktop Only) -->
+					<aside
+						class="w-20 lg:w-64 bg-white border-r border-gray-200 flex-col h-full desktop-only hidden z-30 transition-all duration-300">
+						<div
+							class="h-16 flex items-center justify-center lg:justify-start lg:px-6 border-b border-gray-200 shrink-0">
+							<div
+								class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-200">
+								<i class="fas fa-utensils"></i>
+							</div>
+							<span
+								class="ml-3 font-bold text-gray-900 hidden lg:block"
+								>Mie Jawa</span
+							>
+						</div>
+
+						<nav
+							class="p-3 space-y-2 flex-1 overflow-y-auto custom-scrollbar">
+							<button
+								onclick="switchPage('dashboard')"
+								id="nav-dashboard"
+								class="nav-item active w-full flex items-center gap-3 p-3 rounded-r-xl transition btn-press group relative">
+								<i
+									class="fas fa-home text-lg w-6 text-center"></i>
+								<span
+									class="font-medium text-sm hidden lg:block"
+									>Dashboard</span
+								>
+							</button>
+							<button
+								onclick="switchPage('pos')"
+								id="nav-pos"
+								class="nav-item inactive w-full flex items-center gap-3 p-3 rounded-r-xl transition btn-press group relative">
+								<i
+									class="fas fa-th-large text-lg w-6 text-center"></i>
+								<span
+									class="font-medium text-sm hidden lg:block"
+									>Kasir</span
+								>
+							</button>
+							<button
+								onclick="switchPage('products')"
+								id="nav-products"
+								class="nav-item inactive w-full flex items-center gap-3 p-3 rounded-r-xl transition btn-press group relative">
+								<i
+									class="fas fa-box text-lg w-6 text-center"></i>
+								<span
+									class="font-medium text-sm hidden lg:block"
+									>Produk</span
+								>
+							</button>
+							<button
+								onclick="switchPage('reports')"
+								id="nav-reports"
+								class="nav-item inactive w-full flex items-center gap-3 p-3 rounded-r-xl transition btn-press group relative">
+								<i
+									class="fas fa-file-invoice-dollar text-lg w-6 text-center"></i>
+								<span
+									class="font-medium text-sm hidden lg:block"
+									>Laporan</span
+								>
+							</button>
+						</nav>
+
+						<div class="p-4 border-t border-gray-200 shrink-0">
+							<div
+								class="flex items-center gap-3 p-2 rounded-xl hover:bg-gray-50 cursor-pointer transition">
+								<img
+									src="https://ui-avatars.com/api/?name=Admin&background=0D8ABC&color=fff"
+									class="w-10 h-10 rounded-full border-2 border-white shadow-sm" />
+								<div class="hidden lg:block">
+									<p class="text-sm font-bold text-gray-900">
+										Admin
+									</p>
+									<p
+										class="text-xs text-green-600 font-medium app-status-text">
+										● Online
+									</p>
+								</div>
+							</div>
+						</div>
+					</aside>
+
+					<!-- MAIN CONTENT AREA -->
+					<main
+						class="flex-1 flex flex-col h-full relative w-full bg-gray-50 overflow-hidden">
+						<!-- HEADER MOBILE (Hanya muncul di Mobile/Tablet) -->
+						<header
+							class="h-14 bg-white/95 backdrop-blur-md border-b border-gray-200 flex justify-between items-center px-4 mobile-only sticky top-0 z-20 shrink-0">
+							<!-- Mobile Menu Toggle -->
+							<div class="relative group">
+								<button
+									class="w-9 h-9 rounded-full bg-gray-50 hover:bg-gray-100 border border-gray-200 flex items-center justify-center transition btn-press text-gray-700">
+									<i class="fas fa-bars"></i>
+								</button>
+								<!-- Dropdown Menu Mobile -->
+								<div
+									class="absolute top-12 left-0 w-48 bg-white border border-gray-200 rounded-xl shadow-xl hidden group-hover:block p-1 z-50 animate-fade-in-down">
+									<button
+										onclick="switchPage('dashboard')"
+										class="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 rounded-lg flex items-center gap-2">
+										<i
+											class="fas fa-home text-gray-400 w-5"></i>
+										Dashboard
+									</button>
+									<button
+										onclick="switchPage('pos')"
+										class="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 rounded-lg flex items-center gap-2">
+										<i
+											class="fas fa-th-large text-gray-400 w-5"></i>
+										Kasir
+									</button>
+									<button
+										onclick="switchPage('products')"
+										class="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 rounded-lg flex items-center gap-2">
+										<i
+											class="fas fa-box text-gray-400 w-5"></i>
+										Produk
+									</button>
+									<button
+										onclick="switchPage('reports')"
+										class="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 rounded-lg flex items-center gap-2">
+										<i
+											class="fas fa-file-invoice-dollar text-gray-400 w-5"></i>
+										Laporan
+									</button>
+								</div>
+							</div>
+
+							<div class="text-center">
+								<h2 class="font-bold text-gray-900 text-sm">
+									Mie Jawa Melati
+								</h2>
+								<p
+									class="text-[10px] text-green-600 font-medium app-status-text flex items-center justify-center gap-1">
+									<span
+										class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+									Online
+								</p>
+							</div>
+
+							<!-- Notif Icon -->
+							<div
+								class="w-9 h-9 bg-gray-50 rounded-full border border-gray-200 flex items-center justify-center text-gray-600 relative btn-press">
+								<i class="fas fa-bell text-xs"></i>
+								<span
+									class="absolute top-2 right-2.5 w-1.5 h-1.5 bg-red-500 rounded-full"></span>
+							</div>
+						</header>
+
+						<!-- HEADER DESKTOP -->
+						<header
+							class="h-20 bg-white border-b border-gray-200 items-center justify-between px-8 desktop-only hidden shrink-0">
+							<div>
+								<h2
+									class="text-2xl font-bold text-gray-900"
+									id="page-title">
+									Dashboard
+								</h2>
+								<p
+									class="text-sm text-gray-500"
+									id="page-subtitle">
+									Ringkasan Operasional
+								</p>
+							</div>
+							<!-- Search hanya muncul di halaman POS -->
+							<div
+								class="relative w-80"
+								id="header-search"
+								style="display: none">
+								<i
+									class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+								<input
+									type="text"
+									placeholder="Cari menu atau kode..."
+									class="pl-12 pr-4 py-3 bg-gray-100 border-none rounded-xl text-sm focus:ring-2 focus:ring-blue-500 w-full transition" />
+							</div>
+						</header>
+
+						<!-- ============================== -->
+						<!-- PAGE 1: DASHBOARD (Ringkasan) -->
+						<!-- ============================== -->
+						<div
+							id="page-dashboard"
+							class="flex-1 overflow-y-auto page-section bg-gray-50 p-responsive custom-scrollbar">
+							<!-- Stats Cards -->
+							<div
+								class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+								<div
+									class="bg-white p-4 md:p-5 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
+									<div>
+										<p
+											class="text-[10px] md:text-xs text-gray-500 uppercase font-bold mb-1">
+											Omzet Hari Ini
+										</p>
+										<h3
+											class="text-xl md:text-2xl font-bold text-gray-900">
+											Rp 1.250.000
+										</h3>
+										<p
+											class="text-[10px] md:text-xs text-green-600 mt-1 font-medium">
+											<i class="fas fa-arrow-up"></i> 12%
+											naik
+										</p>
+									</div>
+									<div
+										class="bg-blue-50 p-3 rounded-lg text-blue-600">
+										<i
+											class="fas fa-wallet text-lg md:text-xl"></i>
+									</div>
+								</div>
+								<div
+									class="bg-white p-4 md:p-5 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
+									<div>
+										<p
+											class="text-[10px] md:text-xs text-gray-500 uppercase font-bold mb-1">
+											Transaksi
+										</p>
+										<h3
+											class="text-xl md:text-2xl font-bold text-gray-900">
+											45
+										</h3>
+										<p
+											class="text-[10px] md:text-xs text-gray-500 mt-1 font-medium">
+											Nota berhasil
+										</p>
+									</div>
+									<div
+										class="bg-orange-50 p-3 rounded-lg text-orange-600">
+										<i
+											class="fas fa-receipt text-lg md:text-xl"></i>
+									</div>
+								</div>
+								<div
+									class="bg-white p-4 md:p-5 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
+									<div>
+										<p
+											class="text-[10px] md:text-xs text-gray-500 uppercase font-bold mb-1">
+											Terlaris
+										</p>
+										<h3
+											class="text-lg md:text-xl font-bold text-gray-900 truncate max-w-[120px]">
+											Mie Goreng
+										</h3>
+										<p
+											class="text-[10px] md:text-xs text-blue-600 mt-1 font-medium">
+											28 porsi
+										</p>
+									</div>
+									<div
+										class="bg-yellow-50 p-3 rounded-lg text-yellow-600">
+										<i
+											class="fas fa-star text-lg md:text-xl"></i>
+									</div>
+								</div>
+							</div>
+
+							<!-- Charts Area -->
+							<div
+								class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+								<!-- Main Chart -->
+								<div
+									class="lg:col-span-2 bg-white p-4 md:p-5 rounded-xl border border-gray-200 shadow-sm">
+									<h4
+										class="text-sm font-bold text-gray-800 mb-4">
+										Grafik Pendapatan (7 Hari)
+									</h4>
+									<div class="h-48 md:h-64 relative w-full">
+										<canvas id="salesChart"></canvas>
+									</div>
+								</div>
+
+								<!-- Top Products List -->
+								<div
+									class="bg-white p-4 md:p-5 rounded-xl border border-gray-200 shadow-sm">
+									<h4
+										class="text-sm font-bold text-gray-800 mb-4">
+										Menu Favorit
+									</h4>
+									<div class="space-y-4">
+										<div class="flex items-center gap-3">
+											<span
+												class="text-sm font-bold text-gray-400 w-4"
+												>1</span
+											>
+											<div class="flex-1">
+												<p
+													class="text-xs md:text-sm font-medium text-gray-900">
+													Mie Goreng
+												</p>
+												<div
+													class="w-full bg-gray-100 rounded-full h-1.5 mt-1">
+													<div
+														class="bg-blue-600 h-1.5 rounded-full"
+														style="
+															width: 85%;
+														"></div>
+												</div>
+											</div>
+											<span
+												class="text-xs font-bold text-gray-600"
+												>85%</span
+											>
+										</div>
+										<div class="flex items-center gap-3">
+											<span
+												class="text-sm font-bold text-gray-400 w-4"
+												>2</span
+											>
+											<div class="flex-1">
+												<p
+													class="text-xs md:text-sm font-medium text-gray-900">
+													Mie Godog
+												</p>
+												<div
+													class="w-full bg-gray-100 rounded-full h-1.5 mt-1">
+													<div
+														class="bg-orange-500 h-1.5 rounded-full"
+														style="
+															width: 70%;
+														"></div>
+												</div>
+											</div>
+											<span
+												class="text-xs font-bold text-gray-600"
+												>70%</span
+											>
+										</div>
+										<div class="flex items-center gap-3">
+											<span
+												class="text-sm font-bold text-gray-400 w-4"
+												>3</span
+											>
+											<div class="flex-1">
+												<p
+													class="text-xs md:text-sm font-medium text-gray-900">
+													Nasi Goreng
+												</p>
+												<div
+													class="w-full bg-gray-100 rounded-full h-1.5 mt-1">
+													<div
+														class="bg-yellow-500 h-1.5 rounded-full"
+														style="
+															width: 55%;
+														"></div>
+												</div>
+											</div>
+											<span
+												class="text-xs font-bold text-gray-600"
+												>55%</span
+											>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<!-- ========================== -->
+						<!-- PAGE 2: POS SYSTEM (KASIR) -->
+						<!-- ========================== -->
+						<div
+							id="page-pos"
+							class="hidden flex-1 flex-col overflow-hidden page-section">
+							<!-- Category Tabs (Sticky) -->
+							<div
+								class="px-4 md:px-8 py-3 md:py-4 flex gap-2 md:gap-3 overflow-x-auto hide-scroll bg-gray-50/95 backdrop-blur-sm shrink-0 z-10 border-b border-transparent">
+								<button
+									onclick="scrollToCategory('all')"
+									class="cat-btn active px-4 md:px-6 py-2 bg-gray-900 text-white text-xs md:text-sm font-medium rounded-full shadow-md transition whitespace-nowrap btn-press">
+									Semua
+								</button>
+								<button
+									onclick="scrollToCategory('makanan')"
+									class="cat-btn px-4 md:px-6 py-2 bg-white text-gray-600 border border-gray-200 text-xs md:text-sm font-medium rounded-full transition whitespace-nowrap btn-press">
+									Makanan
+								</button>
+								<button
+									onclick="scrollToCategory('minuman')"
+									class="cat-btn px-4 md:px-6 py-2 bg-white text-gray-600 border border-gray-200 text-xs md:text-sm font-medium rounded-full transition whitespace-nowrap btn-press">
+									Minuman
+								</button>
+								<button
+									onclick="scrollToCategory('snack')"
+									class="cat-btn px-4 md:px-6 py-2 bg-white text-gray-600 border border-gray-200 text-xs md:text-sm font-medium rounded-full transition whitespace-nowrap btn-press">
+									Snack
+								</button>
+							</div>
+
+							<!-- Menu Grid (Scrollable) -->
+							<div
+								class="flex-1 overflow-y-auto p-responsive pb-28 md:pb-8 custom-scrollbar"
+								id="menu-container">
+								<!-- SECTION MAKANAN -->
+								<div
+									id="cat-makanan"
+									class="mb-6">
+									<h3
+										class="font-bold text-gray-800 text-base md:text-lg mb-3 flex items-center gap-2">
+										<i
+											class="fas fa-utensils text-orange-500"></i>
+										Makanan
+									</h3>
+									<div
+										class="grid grid-cols-dynamic gap-3 md:gap-6">
+										<!-- Product Card -->
+										<div
+											onclick="addToCart('Mie Godog', 15000)"
+											class="bg-white p-3 rounded-xl border border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer group btn-press relative overflow-hidden">
+											<div
+												class="aspect-[4/3] bg-orange-50 rounded-lg mb-2 flex items-center justify-center relative">
+												<i
+													class="fas fa-bowl-food text-4xl md:text-5xl text-orange-300 group-hover:scale-110 transition duration-500"></i>
+											</div>
+											<div
+												class="flex justify-between items-start">
+												<div>
+													<h3
+														class="font-bold text-gray-900 text-xs md:text-sm mb-0.5">
+														Mie Godog
+													</h3>
+													<p
+														class="text-xs md:text-sm font-bold text-blue-600">
+														Rp 15.000
+													</p>
+												</div>
+												<button
+													class="w-7 h-7 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 hover:bg-blue-600 hover:text-white transition shadow-sm">
+													<i
+														class="fas fa-plus text-xs"></i>
+												</button>
+											</div>
+										</div>
+
+										<div
+											onclick="addToCart('Mie Goreng', 15000)"
+											class="bg-white p-3 rounded-xl border border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer group btn-press">
+											<div
+												class="aspect-[4/3] bg-red-50 rounded-lg mb-2 flex items-center justify-center">
+												<i
+													class="fas fa-fire text-4xl md:text-5xl text-red-300 group-hover:scale-110 transition duration-500"></i>
+											</div>
+											<div
+												class="flex justify-between items-start">
+												<div>
+													<h3
+														class="font-bold text-gray-900 text-xs md:text-sm mb-0.5">
+														Mie Goreng
+													</h3>
+													<p
+														class="text-xs md:text-sm font-bold text-blue-600">
+														Rp 15.000
+													</p>
+												</div>
+												<button
+													class="w-7 h-7 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 hover:bg-blue-600 hover:text-white transition shadow-sm">
+													<i
+														class="fas fa-plus text-xs"></i>
+												</button>
+											</div>
+										</div>
+
+										<div
+											onclick="addToCart('Nasi Goreng', 17000)"
+											class="bg-white p-3 rounded-xl border border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer group btn-press">
+											<div
+												class="aspect-[4/3] bg-yellow-50 rounded-lg mb-2 flex items-center justify-center">
+												<i
+													class="fas fa-egg text-4xl md:text-5xl text-yellow-400 group-hover:scale-110 transition duration-500"></i>
+											</div>
+											<div
+												class="flex justify-between items-start">
+												<div>
+													<h3
+														class="font-bold text-gray-900 text-xs md:text-sm mb-0.5">
+														Nasi Goreng
+													</h3>
+													<p
+														class="text-xs md:text-sm font-bold text-blue-600">
+														Rp 17.000
+													</p>
+												</div>
+												<button
+													class="w-7 h-7 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 hover:bg-blue-600 hover:text-white transition shadow-sm">
+													<i
+														class="fas fa-plus text-xs"></i>
+												</button>
+											</div>
+										</div>
+									</div>
+								</div>
+
+								<!-- SECTION MINUMAN -->
+								<div
+									id="cat-minuman"
+									class="mb-6">
+									<h3
+										class="font-bold text-gray-800 text-base md:text-lg mb-3 flex items-center gap-2">
+										<i
+											class="fas fa-glass-water text-blue-500"></i>
+										Minuman
+									</h3>
+									<div
+										class="grid grid-cols-dynamic gap-3 md:gap-6">
+										<div
+											onclick="addToCart('Es Teh', 4000)"
+											class="bg-white p-3 rounded-xl border border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer group btn-press">
+											<div
+												class="aspect-[4/3] bg-blue-50 rounded-lg mb-2 flex items-center justify-center">
+												<i
+													class="fas fa-glass-water text-4xl md:text-5xl text-blue-300 group-hover:scale-110 transition duration-500"></i>
+											</div>
+											<div
+												class="flex justify-between items-start">
+												<div>
+													<h3
+														class="font-bold text-gray-900 text-xs md:text-sm mb-0.5">
+														Es Teh
+													</h3>
+													<p
+														class="text-xs md:text-sm font-bold text-blue-600">
+														Rp 4.000
+													</p>
+												</div>
+												<button
+													class="w-7 h-7 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 hover:bg-blue-600 hover:text-white transition shadow-sm">
+													<i
+														class="fas fa-plus text-xs"></i>
+												</button>
+											</div>
+										</div>
+										<div
+											onclick="addToCart('Kopi Panas', 5000)"
+											class="bg-white p-3 rounded-xl border border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer group btn-press">
+											<div
+												class="aspect-[4/3] bg-orange-50 rounded-lg mb-2 flex items-center justify-center">
+												<i
+													class="fas fa-mug-hot text-4xl md:text-5xl text-orange-400 group-hover:scale-110 transition duration-500"></i>
+											</div>
+											<div
+												class="flex justify-between items-start">
+												<div>
+													<h3
+														class="font-bold text-gray-900 text-xs md:text-sm mb-0.5">
+														Kopi Panas
+													</h3>
+													<p
+														class="text-xs md:text-sm font-bold text-blue-600">
+														Rp 5.000
+													</p>
+												</div>
+												<button
+													class="w-7 h-7 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 hover:bg-blue-600 hover:text-white transition shadow-sm">
+													<i
+														class="fas fa-plus text-xs"></i>
+												</button>
+											</div>
+										</div>
+									</div>
+								</div>
+
+								<!-- SECTION SNACK -->
+								<div
+									id="cat-snack"
+									class="mb-6">
+									<h3
+										class="font-bold text-gray-800 text-base md:text-lg mb-3 flex items-center gap-2">
+										<i
+											class="fas fa-cookie text-yellow-500"></i>
+										Snack
+									</h3>
+									<div
+										class="grid grid-cols-dynamic gap-3 md:gap-6">
+										<div
+											onclick="addToCart('Kerupuk', 2000)"
+											class="bg-white p-3 rounded-xl border border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer group btn-press">
+											<div
+												class="aspect-[4/3] bg-yellow-50 rounded-lg mb-2 flex items-center justify-center">
+												<i
+													class="fas fa-cookie-bite text-4xl md:text-5xl text-yellow-400 group-hover:scale-110 transition duration-500"></i>
+											</div>
+											<div
+												class="flex justify-between items-start">
+												<div>
+													<h3
+														class="font-bold text-gray-900 text-xs md:text-sm mb-0.5">
+														Kerupuk
+													</h3>
+													<p
+														class="text-xs md:text-sm font-bold text-blue-600">
+														Rp 2.000
+													</p>
+												</div>
+												<button
+													class="w-7 h-7 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 hover:bg-blue-600 hover:text-white transition shadow-sm">
+													<i
+														class="fas fa-plus text-xs"></i>
+												</button>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<!-- ============================== -->
+						<!-- PAGE 3: PRODUCTS CRUD (Produk) -->
+						<!-- ============================== -->
+						<div
+							id="page-products"
+							class="hidden flex-1 p-responsive overflow-y-auto page-section bg-gray-50 custom-scrollbar">
+							<div
+								class="flex flex-wrap justify-between items-center mb-4 md:mb-6 gap-3">
+								<h2
+									class="text-lg md:text-xl font-bold text-gray-800">
+									Daftar Produk
+								</h2>
+								<button
+									onclick="showProductModal()"
+									class="bg-blue-600 text-white px-3 py-2 rounded-lg font-medium shadow hover:bg-blue-700 btn-press flex items-center gap-2 text-xs md:text-sm">
+									<i class="fas fa-plus"></i>
+									<span class="">Tambah</span>
+								</button>
+							</div>
+
+							<!-- Product Table -->
+							<div
+								class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+								<div class="overflow-x-auto">
+									<table class="w-full text-left text-sm">
+										<thead
+											class="bg-gray-50 border-b border-gray-200 text-gray-600 uppercase text-[10px] md:text-xs">
+											<tr>
+												<th
+													class="px-4 md:px-6 py-3 font-semibold">
+													Produk
+												</th>
+												<th
+													class="px-4 md:px-6 py-3 font-semibold hidden md:table-cell">
+													Kategori
+												</th>
+												<th
+													class="px-4 md:px-6 py-3 font-semibold">
+													Harga
+												</th>
+												<th
+													class="px-4 md:px-6 py-3 font-semibold hidden md:table-cell">
+													Status
+												</th>
+												<th
+													class="px-4 md:px-6 py-3 font-semibold text-right">
+													Aksi
+												</th>
+											</tr>
+										</thead>
+										<tbody
+											class="divide-y divide-gray-100 text-gray-700">
+											<tr
+												class="hover:bg-gray-50 transition">
+												<td
+													class="px-4 md:px-6 py-3 flex items-center gap-3">
+													<div
+														class="w-8 h-8 md:w-10 md:h-10 bg-orange-100 rounded-lg flex items-center justify-center text-orange-500">
+														<i
+															class="fas fa-bowl-food text-xs md:text-base"></i>
+													</div>
+													<span
+														class="font-medium text-gray-900 text-xs md:text-sm"
+														>Mie Godog</span
+													>
+												</td>
+												<td
+													class="px-4 md:px-6 py-3 hidden md:table-cell">
+													<span
+														class="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs"
+														>Makanan</span
+													>
+												</td>
+												<td
+													class="px-4 md:px-6 py-3 font-semibold text-xs md:text-sm">
+													Rp 15.000
+												</td>
+												<td
+													class="px-4 md:px-6 py-3 hidden md:table-cell">
+													<span
+														class="text-green-600 text-xs font-bold"
+														>● Tersedia</span
+													>
+												</td>
+												<td
+													class="px-4 md:px-6 py-3 text-right">
+													<button
+														class="p-1.5 md:p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition">
+														<i
+															class="fas fa-edit"></i>
+													</button>
+													<button
+														class="p-1.5 md:p-2 text-red-600 hover:bg-red-50 rounded-lg transition">
+														<i
+															class="fas fa-trash"></i>
+													</button>
+												</td>
+											</tr>
+											<tr
+												class="hover:bg-gray-50 transition">
+												<td
+													class="px-4 md:px-6 py-3 flex items-center gap-3">
+													<div
+														class="w-8 h-8 md:w-10 md:h-10 bg-blue-100 rounded-lg flex items-center justify-center text-blue-500">
+														<i
+															class="fas fa-glass-water text-xs md:text-base"></i>
+													</div>
+													<span
+														class="font-medium text-gray-900 text-xs md:text-sm"
+														>Es Teh</span
+													>
+												</td>
+												<td
+													class="px-4 md:px-6 py-3 hidden md:table-cell">
+													<span
+														class="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs"
+														>Minuman</span
+													>
+												</td>
+												<td
+													class="px-4 md:px-6 py-3 font-semibold text-xs md:text-sm">
+													Rp 4.000
+												</td>
+												<td
+													class="px-4 md:px-6 py-3 hidden md:table-cell">
+													<span
+														class="text-green-600 text-xs font-bold"
+														>● Tersedia</span
+													>
+												</td>
+												<td
+													class="px-4 md:px-6 py-3 text-right">
+													<button
+														class="p-1.5 md:p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition">
+														<i
+															class="fas fa-edit"></i>
+													</button>
+													<button
+														class="p-1.5 md:p-2 text-red-600 hover:bg-red-50 rounded-lg transition">
+														<i
+															class="fas fa-trash"></i>
+													</button>
+												</td>
+											</tr>
+										</tbody>
+									</table>
+								</div>
+							</div>
+						</div>
+
+						<!-- =============================== -->
+						<!-- PAGE 4: REPORTS TABLE (Laporan) -->
+						<!-- =============================== -->
+						<div
+							id="page-reports"
+							class="hidden flex-1 p-responsive overflow-y-auto page-section bg-gray-50 custom-scrollbar">
+							<div
+								class="flex flex-wrap justify-between items-center mb-6 gap-4">
+								<h2
+									class="text-lg md:text-xl font-bold text-gray-800">
+									Laporan Pendapatan
+								</h2>
+								<div class="flex gap-2">
+									<button
+										class="px-3 py-2 bg-white border border-gray-200 text-xs font-medium rounded-lg hover:bg-gray-50 flex items-center gap-2">
+										<i class="fas fa-calendar-alt"></i>
+										<span class="hidden md:inline"
+											>Filter</span
+										>
+									</button>
+									<button
+										onclick="exportToExcel()"
+										class="px-3 py-2 bg-green-600 text-white text-xs font-medium rounded-lg shadow hover:bg-green-700 flex items-center gap-2 btn-press">
+										<i class="fas fa-file-excel"></i>
+										<span class="hidden md:inline"
+											>Export</span
+										>
+									</button>
+								</div>
+							</div>
+
+							<!-- Report Table -->
+							<div
+								class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+								<div class="overflow-x-auto">
+									<table
+										class="w-full text-left text-sm"
+										id="report-table">
+										<thead
+											class="bg-gray-50 border-b border-gray-200 text-gray-600 uppercase text-[10px] md:text-xs">
+											<tr>
+												<th
+													class="px-4 md:px-6 py-3 font-semibold">
+													No. Nota
+												</th>
+												<th
+													class="px-4 md:px-6 py-3 font-semibold">
+													Waktu
+												</th>
+												<th
+													class="px-4 md:px-6 py-3 font-semibold hidden md:table-cell">
+													Metode
+												</th>
+												<th
+													class="px-4 md:px-6 py-3 font-semibold">
+													Total
+												</th>
+												<th
+													class="px-4 md:px-6 py-3 font-semibold text-right">
+													Status
+												</th>
+											</tr>
+										</thead>
+										<tbody
+											class="divide-y divide-gray-100 text-gray-700">
+											<tr
+												class="hover:bg-gray-50 transition">
+												<td
+													class="px-4 md:px-6 py-3 font-medium text-gray-900 text-xs md:text-sm">
+													#INV-00124
+												</td>
+												<td
+													class="px-4 md:px-6 py-3 text-xs text-gray-500">
+													<div
+														class="font-medium text-gray-900">
+														26 Des
+													</div>
+													<div>14:30</div>
+												</td>
+												<td
+													class="px-4 md:px-6 py-3 hidden md:table-cell">
+													<span
+														class="bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs font-medium"
+														>Tunai</span
+													>
+												</td>
+												<td
+													class="px-4 md:px-6 py-3 font-bold text-xs md:text-sm">
+													Rp 45.000
+												</td>
+												<td
+													class="px-4 md:px-6 py-3 text-right">
+													<span
+														class="text-green-600 text-xs font-bold bg-green-50 px-2 py-1 rounded"
+														>Selesai</span
+													>
+												</td>
+											</tr>
+											<tr
+												class="hover:bg-gray-50 transition">
+												<td
+													class="px-4 md:px-6 py-3 font-medium text-gray-900 text-xs md:text-sm">
+													#INV-00123
+												</td>
+												<td
+													class="px-4 md:px-6 py-3 text-xs text-gray-500">
+													<div
+														class="font-medium text-gray-900">
+														26 Des
+													</div>
+													<div>14:15</div>
+												</td>
+												<td
+													class="px-4 md:px-6 py-3 hidden md:table-cell">
+													<span
+														class="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs font-medium"
+														>QRIS</span
+													>
+												</td>
+												<td
+													class="px-4 md:px-6 py-3 font-bold text-xs md:text-sm">
+													Rp 30.000
+												</td>
+												<td
+													class="px-4 md:px-6 py-3 text-right">
+													<span
+														class="text-green-600 text-xs font-bold bg-green-50 px-2 py-1 rounded"
+														>Selesai</span
+													>
+												</td>
+											</tr>
+										</tbody>
+									</table>
+								</div>
+							</div>
+						</div>
+					</main>
+
+					<!-- CART SIDEBAR (Responsive Logic) -->
+					<!-- Desktop: Static Sidebar. Mobile: Bottom Sheet (simulated) -->
+					<aside
+						id="cart-panel"
+						class="w-80 lg:w-96 bg-white border-l border-gray-200 flex flex-col h-full shadow-2xl z-40 transform transition-transform duration-300 desktop-only shrink-0">
+						<div
+							class="p-4 md:p-6 border-b border-gray-200 bg-white flex justify-between items-center shrink-0">
+							<div>
+								<h3
+									class="font-bold text-base md:text-lg text-gray-900">
+									Pesanan Aktif
+								</h3>
+								<div
+									class="flex items-center gap-2 text-xs text-gray-500 mt-1">
+									<span
+										class="bg-gray-100 px-2 py-0.5 rounded"
+										>Dine In</span
+									>
+									<span>•</span>
+									<span>Meja 4</span>
+								</div>
+							</div>
+							<button
+								onclick="clearCart()"
+								class="text-gray-400 hover:text-red-500 transition btn-press">
+								<i class="fas fa-trash-alt"></i>
+							</button>
+						</div>
+
+						<!-- Cart Items -->
+						<div
+							class="flex-1 overflow-y-auto p-4 space-y-3 bg-white custom-scrollbar"
+							id="cart-items-container">
+							<!-- Items will be injected here by JS -->
+							<div
+								class="text-center py-10 opacity-50"
+								id="empty-cart-msg">
+								<i
+									class="fas fa-basket-shopping text-4xl text-gray-300 mb-2"></i>
+								<p class="text-xs text-gray-400">
+									Keranjang kosong
+								</p>
+							</div>
+						</div>
+
+						<!-- Cart Footer -->
+						<div
+							class="p-4 md:p-6 bg-gray-50 border-t border-gray-200 shrink-0">
+							<div class="space-y-2 mb-4">
+								<div class="flex justify-between text-sm">
+									<span class="text-gray-500">Subtotal</span>
+									<span
+										class="font-bold text-gray-900"
+										id="cart-subtotal"
+										>Rp 0</span
+									>
+								</div>
+								<div class="flex justify-between text-sm">
+									<span class="text-gray-500"
+										>Pajak (0%)</span
+									>
+									<span class="font-bold text-gray-900"
+										>Rp 0</span
+									>
+								</div>
+								<div
+									class="border-t border-dashed border-gray-300 my-2 pt-2 flex justify-between items-center">
+									<span
+										class="text-base font-bold text-gray-800"
+										>Total</span
+									>
+									<span
+										class="text-xl font-bold text-blue-600"
+										id="cart-total"
+										>Rp 0</span
+									>
+								</div>
+							</div>
+							<button
+								onclick="showCheckoutModal()"
+								id="btn-checkout"
+								class="w-full py-3.5 bg-gray-900 text-white rounded-xl font-bold text-sm shadow-lg shadow-gray-300 hover:bg-gray-800 transition flex items-center justify-center gap-2 btn-press opacity-50 cursor-not-allowed"
+								disabled>
+								Bayar Sekarang
+								<i class="fas fa-arrow-right"></i>
+							</button>
+						</div>
+					</aside>
+
+					<!-- MOBILE FLOATING CART (Bottom Bar) -->
+					<div
+						class="absolute bottom-6 left-4 right-4 z-40 mobile-only"
+						onclick="toggleMobileCart()">
+						<button
+							class="w-full bg-gray-900/95 backdrop-blur-md text-white p-4 rounded-2xl shadow-2xl flex justify-between items-center btn-press border border-white/10">
+							<div class="flex items-center gap-3">
+								<div
+									class="bg-blue-600 w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm"
+									id="mobile-cart-count">
+									0
+								</div>
+								<div class="flex flex-col items-start">
+									<span class="text-xs text-gray-300"
+										>Total Tagihan</span
+									>
+									<span
+										class="font-bold text-lg"
+										id="mobile-cart-total"
+										>Rp 0</span
+									>
+								</div>
+							</div>
+							<div
+								class="flex items-center gap-2 font-bold text-sm bg-white text-gray-900 px-4 py-2 rounded-xl">
+								Bayar
+								<i class="fas fa-chevron-right text-xs"></i>
+							</div>
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- MODAL CHECKOUT (Overlay) -->
+		<div
+			id="modal-checkout"
+			class="fixed inset-0 bg-black/50 z-[60] hidden flex items-end md:items-center justify-center p-0 md:p-4 backdrop-blur-sm transition-opacity duration-300">
+			<div
+				class="bg-white w-full md:max-w-md rounded-t-3xl md:rounded-2xl shadow-2xl h-[85vh] md:h-auto flex flex-col slide-up overflow-hidden">
+				<div
+					class="p-6 border-b border-gray-100 flex justify-between items-center shrink-0">
+					<h3 class="text-xl font-bold text-gray-900">Pembayaran</h3>
+					<button
+						onclick="closeCheckoutModal()"
+						class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition">
+						<i class="fas fa-times"></i>
+					</button>
+				</div>
+
+				<div
+					class="p-6 overflow-y-auto flex-1 space-y-6 custom-scrollbar">
+					<!-- NEW: Order Summary List -->
+					<div
+						class="bg-gray-50 rounded-xl p-4 border border-gray-100">
+						<h4
+							class="text-xs font-bold text-gray-500 uppercase mb-3">
+							Ringkasan Pesanan
+						</h4>
+						<div
+							id="checkout-item-list"
+							class="space-y-3">
+							<!-- Javascript will populate this -->
+						</div>
+					</div>
+
+					<!-- Total Display -->
+					<div class="text-center">
+						<p class="text-sm text-gray-500 mb-1">Total Tagihan</p>
+						<h2
+							class="text-4xl font-bold text-gray-900 tracking-tight"
+							id="modal-total-display">
+							Rp 0
+						</h2>
+					</div>
+
+					<!-- Payment Method -->
+					<div>
+						<label
+							class="block text-xs font-bold text-gray-500 uppercase mb-3"
+							>Metode Pembayaran</label
+						>
+						<div class="grid grid-cols-2 gap-3">
+							<button
+								class="py-3 px-4 rounded-xl border-2 border-blue-600 bg-blue-50 text-blue-700 font-bold text-sm flex items-center justify-center gap-2 btn-press">
+								<i class="fas fa-money-bill-wave"></i> Tunai
+							</button>
+							<button
+								class="py-3 px-4 rounded-xl border border-gray-200 bg-white text-gray-600 font-medium text-sm flex items-center justify-center gap-2 hover:bg-gray-50 btn-press">
+								<i class="fas fa-qrcode"></i> QRIS
+							</button>
+						</div>
+					</div>
+
+					<!-- Cash Input -->
+					<div>
+						<label
+							class="block text-xs font-bold text-gray-500 uppercase mb-2"
+							>Uang Diterima</label
+						>
+						<div class="relative">
+							<span
+								class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold"
+								>Rp</span
+							>
+							<input
+								type="number"
+								id="input-payment"
+								class="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-xl text-lg font-bold focus:ring-2 focus:ring-blue-500 outline-none"
+								placeholder="0"
+								oninput="calculateChange()" />
+						</div>
+						<div class="grid grid-cols-4 gap-2 mt-3">
+							<button
+								onclick="setPayment(10000)"
+								class="py-2 bg-white border border-gray-200 rounded-lg text-xs font-medium hover:bg-gray-50 btn-press">
+								10k
+							</button>
+							<button
+								onclick="setPayment(20000)"
+								class="py-2 bg-white border border-gray-200 rounded-lg text-xs font-medium hover:bg-gray-50 btn-press">
+								20k
+							</button>
+							<button
+								onclick="setPayment(50000)"
+								class="py-2 bg-white border border-gray-200 rounded-lg text-xs font-medium hover:bg-gray-50 btn-press">
+								50k
+							</button>
+							<button
+								onclick="setPayment(100000)"
+								class="py-2 bg-white border border-gray-200 rounded-lg text-xs font-medium hover:bg-gray-50 btn-press">
+								100k
+							</button>
+						</div>
+					</div>
+
+					<!-- Change Info -->
+					<div
+						class="bg-green-50 border border-green-100 p-4 rounded-xl flex justify-between items-center">
+						<span class="text-sm font-bold text-green-800"
+							>Kembalian</span
+						>
+						<span
+							class="text-xl font-bold text-green-700"
+							id="change-display"
+							>Rp 0</span
+						>
+					</div>
+				</div>
+
+				<!-- Modal Footer -->
+				<div class="p-6 border-t border-gray-100 shrink-0 space-y-3">
+					<div class="flex items-center gap-2">
+						<input
+							type="checkbox"
+							id="print-receipt"
+							class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+							checked />
+						<label
+							for="print-receipt"
+							class="text-sm font-medium text-gray-700 cursor-pointer select-none"
+							>Cetak Struk Pesanan</label
+						>
+					</div>
+					<button
+						onclick="processTransaction()"
+						class="w-full bg-gray-900 text-white py-4 rounded-xl font-bold text-sm shadow-lg hover:bg-gray-800 transition btn-press">
+						Selesaikan Transaksi
+					</button>
+				</div>
+			</div>
+		</div>
+
+		<!-- MODAL RECEIPT (Thermal Printer Style) -->
+		<div
+			id="modal-receipt"
+			class="fixed inset-0 bg-black/60 z-[70] hidden flex items-center justify-center p-4 backdrop-blur-sm transition-opacity duration-300">
+			<div
+				class="bg-white w-full max-w-sm rounded-lg shadow-2xl flex flex-col slide-up overflow-hidden receipt-jagged pb-4">
+				<div
+					class="p-6 bg-white flex flex-col items-center border-b border-dashed border-gray-300">
+					<div
+						class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white mb-2">
+						<i class="fas fa-utensils text-lg"></i>
+					</div>
+					<h3
+						class="font-bold text-xl text-gray-900 font-receipt tracking-tight">
+						MIE JAWA MELATI
+					</h3>
+					<p
+						class="text-xs text-gray-500 font-receipt mt-1 text-center">
+						Jl. Nasional III, Kepanjen Kidul<br />Kota Blitar, Jawa
+						Timur
+					</p>
+					<p class="text-xs text-gray-500 font-receipt mt-2">
+						Telp: 0812-3456-7890
+					</p>
+				</div>
+
+				<div class="p-6 space-y-4 bg-white">
+					<div
+						class="flex justify-between text-xs text-gray-500 font-receipt border-b border-dashed border-gray-300 pb-2">
+						<div>
+							<p>No: #INV-00125</p>
+							<p>Kasir: Admin</p>
+						</div>
+						<div class="text-right">
+							<p id="receipt-date">26/12/2025</p>
+							<p id="receipt-time">14:45</p>
+						</div>
+					</div>
+
+					<!-- Items -->
+					<div
+						id="receipt-items"
+						class="space-y-2 text-sm font-receipt text-gray-800">
+						<!-- JS will populate -->
+					</div>
+
+					<div
+						class="border-t border-dashed border-gray-300 pt-2 space-y-1 text-sm font-receipt">
+						<div class="flex justify-between">
+							<span class="text-gray-600">Subtotal</span>
+							<span
+								class="font-bold"
+								id="receipt-subtotal"
+								>Rp 0</span
+							>
+						</div>
+						<div class="flex justify-between">
+							<span class="text-gray-600">Pajak (0%)</span>
+							<span>Rp 0</span>
+						</div>
+						<div
+							class="flex justify-between text-lg font-bold border-t border-dashed border-gray-300 pt-2 mt-2">
+							<span>Total</span>
+							<span id="receipt-total">Rp 0</span>
+						</div>
+						<div
+							class="flex justify-between text-xs text-gray-500 pt-1">
+							<span>Tunai</span>
+							<span id="receipt-cash">Rp 0</span>
+						</div>
+						<div class="flex justify-between text-xs text-gray-500">
+							<span>Kembali</span>
+							<span id="receipt-change">Rp 0</span>
+						</div>
+					</div>
+				</div>
+
+				<div class="p-6 pt-0 bg-white text-center">
+					<p class="text-xs text-gray-400 font-receipt mb-4">
+						*** TERIMA KASIH ***<br />Selamat Menikmati
+					</p>
+					<div class="flex gap-2">
+						<button
+							onclick="closeReceiptModal()"
+							class="flex-1 py-2 border border-gray-300 text-gray-700 rounded-lg text-xs font-bold hover:bg-gray-50">
+							Tutup
+						</button>
+						<button
+							onclick="printReceiptReal()"
+							class="flex-1 py-2 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 flex items-center justify-center gap-2">
+							<i class="fas fa-print"></i> Cetak
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- MODAL PRODUCT CRUD (Overlay) -->
+		<div
+			id="modal-product"
+			class="fixed inset-0 bg-black/50 z-[60] hidden flex items-center justify-center p-4 backdrop-blur-sm transition-opacity duration-300">
+			<div
+				class="bg-white w-full max-w-md rounded-2xl shadow-2xl flex flex-col slide-up overflow-hidden">
+				<div
+					class="p-6 border-b border-gray-100 flex justify-between items-center shrink-0">
+					<h3
+						class="text-lg font-bold text-gray-900"
+						id="modal-product-title">
+						Tambah Produk Baru
+					</h3>
+					<button
+						onclick="closeProductModal()"
+						class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition">
+						<i class="fas fa-times"></i>
+					</button>
+				</div>
+				<div class="p-6 space-y-4 overflow-y-auto custom-scrollbar">
+					<div>
+						<label
+							class="block text-xs font-bold text-gray-500 mb-1"
+							>Nama Produk</label
+						>
+						<input
+							type="text"
+							id="prod-name"
+							class="w-full p-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+							placeholder="Contoh: Mie Goreng Spesial" />
+					</div>
+					<div>
+						<label
+							class="block text-xs font-bold text-gray-500 mb-1"
+							>Kategori</label
+						>
+						<select
+							id="prod-category"
+							class="w-full p-3 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+							<option>Makanan</option>
+							<option>Minuman</option>
+							<option>Snack</option>
+						</select>
+					</div>
+					<div>
+						<label
+							class="block text-xs font-bold text-gray-500 mb-1"
+							>Harga (Rp)</label
+						>
+						<input
+							type="number"
+							id="prod-price"
+							class="w-full p-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+							placeholder="0" />
+					</div>
+					<button
+						onclick="saveProduct()"
+						class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold text-sm hover:bg-blue-700 transition btn-press mt-2">
+						Simpan Produk
+					</button>
+				</div>
+			</div>
+		</div>
+
+		<!-- MODAL EDIT PROFILE (Overlay) -->
+		<div
+			id="modal-profile"
+			class="fixed inset-0 bg-black/50 z-[60] hidden flex items-center justify-center p-4 backdrop-blur-sm transition-opacity duration-300">
+			<div
+				class="bg-white w-full max-w-sm rounded-2xl shadow-2xl flex flex-col slide-up overflow-hidden">
+				<div
+					class="p-6 border-b border-gray-100 flex justify-between items-center">
+					<h3 class="text-lg font-bold text-gray-900">Edit Profil</h3>
+					<button
+						onclick="closeProfileModal()"
+						class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition">
+						<i class="fas fa-times"></i>
+					</button>
+				</div>
+				<div class="p-6 space-y-4">
+					<div class="flex flex-col items-center mb-4">
+						<img
+							src="https://ui-avatars.com/api/?name=Admin&background=0D8ABC&color=fff"
+							class="w-20 h-20 rounded-full border-4 border-blue-50 shadow-sm mb-2" />
+						<button
+							class="text-xs text-blue-600 font-medium hover:underline">
+							Ubah Foto
+						</button>
+					</div>
+					<div>
+						<label
+							class="block text-xs font-bold text-gray-500 mb-1"
+							>Nama Lengkap</label
+						>
+						<input
+							type="text"
+							class="w-full p-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+							value="Admin Kasir" />
+					</div>
+					<div>
+						<label
+							class="block text-xs font-bold text-gray-500 mb-1"
+							>Role</label
+						>
+						<input
+							type="text"
+							class="w-full p-3 border border-gray-200 rounded-lg text-sm bg-gray-50 text-gray-500 cursor-not-allowed"
+							value="Owner"
+							disabled />
+					</div>
+					<button
+						onclick="saveProfile()"
+						class="w-full bg-gray-900 text-white py-3 rounded-xl font-bold text-sm hover:bg-gray-800 transition btn-press mt-2">
+						Simpan Perubahan
+					</button>
+				</div>
+			</div>
+		</div>
+
+		<!-- JAVASCRIPT LOGIC -->
+		<script>
+			// State Management
+			let cart = [];
+			let totalAmount = 0;
+			let isOnline = true;
+			let salesChartInstance = null;
+
+			// Init Chart when page loads (lazy init when tab shown)
+			function initChart() {
+				const ctx = document
+					.getElementById('salesChart')
+					.getContext('2d');
+				if (salesChartInstance) salesChartInstance.destroy();
+
+				salesChartInstance = new Chart(ctx, {
+					type: 'bar',
+					data: {
+						labels: [
+							'Sen',
+							'Sel',
+							'Rab',
+							'Kam',
+							'Jum',
+							'Sab',
+							'Min',
+						],
+						datasets: [
+							{
+								label: 'Pendapatan (Ribuan Rp)',
+								data: [850, 920, 1100, 880, 1250, 1500, 1350],
+								backgroundColor: '#2563EB',
+								borderRadius: 6,
+							},
+						],
+					},
+					options: {
+						responsive: true,
+						maintainAspectRatio: false,
+						plugins: { legend: { display: false } },
+						scales: {
+							y: {
+								beginAtZero: true,
+								grid: { color: '#f3f4f6' },
+							},
+							x: { grid: { display: false } },
+						},
+					},
+				});
+			}
+
+			// --- EXPORT TO EXCEL SIMULATION ---
+			function exportToExcel() {
+				// Data dummy untuk export
+				const data = [
+					{
+						'No Nota': '#INV-00124',
+						Tanggal: '26 Des 2025',
+						Waktu: '14:30',
+						Metode: 'Tunai',
+						Total: 45000,
+						Status: 'Selesai',
+					},
+					{
+						'No Nota': '#INV-00123',
+						Tanggal: '26 Des 2025',
+						Waktu: '14:15',
+						Metode: 'QRIS',
+						Total: 30000,
+						Status: 'Selesai',
+					},
+					{
+						'No Nota': '#INV-00122',
+						Tanggal: '26 Des 2025',
+						Waktu: '13:45',
+						Metode: 'Tunai',
+						Total: 15000,
+						Status: 'Selesai',
+					},
+				];
+
+				const worksheet = XLSX.utils.json_to_sheet(data);
+				const workbook = XLSX.utils.book_new();
+				XLSX.utils.book_append_sheet(
+					workbook,
+					worksheet,
+					'Laporan Penjualan',
+				);
+
+				XLSX.writeFile(workbook, 'Laporan_Penjualan_Mie_Jawa.xlsx');
+
+				Swal.fire({
+					icon: 'success',
+					title: 'Export Berhasil',
+					text: 'File Excel telah diunduh.',
+					timer: 1500,
+					showConfirmButton: false,
+				});
+			}
+
+			// --- VIEW SWITCHER ---
+			function setView(mode) {
+				const container = document.getElementById('main-container');
+				const btns = {
+					desktop: document.getElementById('btn-view-desktop'),
+				};
+
+				container.className = `flex-1 p-4 md:p-8 bg-gray-200 overflow-auto flex justify-center items-start transition-colors duration-500 view-${mode}`;
+
+				// Adjust body background based on view for contrast
+				if (mode === 'mobile')
+					document.body.className =
+						'bg-gray-800 min-h-screen flex flex-col';
+				else
+					document.body.className =
+						'bg-gray-100 min-h-screen flex flex-col';
+			}
+
+			// --- NAVIGATION & TABS ---
+			function switchPage(pageId) {
+				// Update Active State Sidebar
+				document.querySelectorAll('.nav-item').forEach(el => {
+					el.classList.remove('active');
+					el.classList.add('inactive');
+				});
+				const activeNav = document.getElementById(`nav-${pageId}`);
+				if (activeNav) {
+					activeNav.classList.add('active');
+					activeNav.classList.remove('inactive');
+				}
+
+				// Hide all pages
+				document
+					.querySelectorAll('.page-section')
+					.forEach(el => el.classList.add('hidden'));
+				document
+					.querySelectorAll('.page-section')
+					.forEach(el => el.classList.remove('flex-1'));
+
+				// Show selected
+				const page = document.getElementById(`page-${pageId}`);
+				if (page) {
+					page.classList.remove('hidden');
+					page.classList.add('flex-1'); // Restore flex layout
+				}
+
+				// Update Header Title
+				const titles = {
+					dashboard: 'Dashboard',
+					pos: 'Transaksi Baru',
+					products: 'Manajemen Produk',
+					reports: 'Laporan Penjualan',
+				};
+				const subtitles = {
+					dashboard: 'Ringkasan Operasional',
+					pos: 'Selasa, 26 Des 2025',
+					products: 'Kelola Menu Restoran',
+					reports: 'Rekapitulasi Transaksi',
+				};
+
+				const titleEl = document.getElementById('page-title');
+				if (titleEl) titleEl.innerText = titles[pageId] || 'Dashboard';
+
+				const subtitleEl = document.getElementById('page-subtitle');
+				if (subtitleEl) subtitleEl.innerText = subtitles[pageId] || '';
+
+				// Show/Hide Header Search (Only for POS)
+				const searchBar = document.getElementById('header-search');
+				if (searchBar) {
+					if (pageId === 'pos') searchBar.style.display = 'block';
+					else searchBar.style.display = 'none';
+				}
+
+				// Init Chart if Dashboard page
+				if (pageId === 'dashboard') {
+					setTimeout(initChart, 100); // Small delay to ensure container visible
+				}
+			}
+
+			// --- MOBILE NAVIGATION LOGIC ---
+			function switchPageMobile(pageId) {
+				switchPage(pageId);
+				toggleMobileSidebar();
+			}
+
+			function toggleMobileSidebar() {
+				const sidebar = document.getElementById('mobile-sidebar');
+				const overlay = document.getElementById(
+					'mobile-sidebar-overlay',
+				);
+
+				if (sidebar.classList.contains('-translate-x-full')) {
+					sidebar.classList.remove('-translate-x-full');
+					overlay.classList.remove('hidden');
+				} else {
+					sidebar.classList.add('-translate-x-full');
+					overlay.classList.add('hidden');
+				}
+			}
+
+			function scrollToCategory(catId) {
+				// Update active button style
+				document.querySelectorAll('.cat-btn').forEach(btn => {
+					btn.classList.remove('bg-gray-900', 'text-white');
+					btn.classList.add(
+						'bg-white',
+						'text-gray-600',
+						'border',
+						'border-gray-200',
+					);
+				});
+				event.target.classList.remove(
+					'bg-white',
+					'text-gray-600',
+					'border',
+					'border-gray-200',
+				);
+				event.target.classList.add('bg-gray-900', 'text-white');
+
+				// Scroll Logic
+				if (catId === 'all') {
+					document
+						.getElementById('menu-container')
+						.scrollTo({ top: 0, behavior: 'smooth' });
+				} else {
+					const element = document.getElementById(`cat-${catId}`);
+					if (element)
+						element.scrollIntoView({
+							behavior: 'smooth',
+							block: 'start',
+						});
+				}
+			}
+
+			// --- CART LOGIC ---
+			function addToCart(name, price) {
+				const existingItem = cart.find(item => item.name === name);
+				if (existingItem) {
+					existingItem.qty++;
+				} else {
+					cart.push({ name, price, qty: 1 });
+				}
+				updateCartUI();
+			}
+
+			function updateCartUI() {
+				const container = document.getElementById(
+					'cart-items-container',
+				);
+				const emptyMsg = document.getElementById('empty-cart-msg');
+				const btnCheckout = document.getElementById('btn-checkout');
+
+				// Calculate Total
+				totalAmount = cart.reduce(
+					(sum, item) => sum + item.price * item.qty,
+					0,
+				);
+				document.getElementById('cart-subtotal').innerText =
+					formatRupiah(totalAmount);
+				document.getElementById('cart-total').innerText =
+					formatRupiah(totalAmount);
+				document.getElementById('mobile-cart-total').innerText =
+					formatRupiah(totalAmount);
+				document.getElementById('mobile-cart-count').innerText =
+					cart.reduce((sum, item) => sum + item.qty, 0);
+
+				// Render Items
+				if (cart.length === 0) {
+					container.innerHTML = '';
+					container.appendChild(emptyMsg);
+					emptyMsg.style.display = 'block';
+					btnCheckout.disabled = true;
+					btnCheckout.classList.add(
+						'opacity-50',
+						'cursor-not-allowed',
+					);
+				} else {
+					emptyMsg.style.display = 'none';
+					btnCheckout.disabled = false;
+					btnCheckout.classList.remove(
+						'opacity-50',
+						'cursor-not-allowed',
+					);
+
+					container.innerHTML = cart
+						.map(
+							item => `
+                    <div class="flex gap-4 p-3 bg-gray-50 rounded-xl border border-gray-100 hover:border-blue-200 transition group">
+                        <div class="w-12 h-12 bg-white rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm font-bold text-gray-400">
+                            ${item.name.charAt(0)}
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex justify-between mb-1">
+                                <span class="text-sm font-bold text-gray-800">${
+									item.name
+								}</span>
+                                <span class="text-sm font-bold text-gray-900">${formatRupiah(
+									item.price * item.qty,
+								)}</span>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <div class="flex items-center bg-white rounded-lg border border-gray-200 shadow-sm h-7">
+                                    <button onclick="updateQty('${
+										item.name
+									}', -1)" class="px-2 text-gray-500 hover:text-red-500 rounded-l-lg transition">-</button>
+                                    <span class="text-xs font-bold px-2 text-gray-800">${
+										item.qty
+									}</span>
+                                    <button onclick="updateQty('${
+										item.name
+									}', 1)" class="px-2 text-gray-500 hover:text-green-500 rounded-r-lg transition">+</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `,
+						)
+						.join('');
+				}
+			}
+
+			function updateQty(name, change) {
+				const item = cart.find(i => i.name === name);
+				if (item) {
+					item.qty += change;
+					if (item.qty <= 0) {
+						cart = cart.filter(i => i.name !== name);
+					}
+					updateCartUI();
+				}
+			}
+
+			function clearCart() {
+				cart = [];
+				updateCartUI();
+			}
+
+			function formatRupiah(number) {
+				return new Intl.NumberFormat('id-ID', {
+					style: 'currency',
+					currency: 'IDR',
+					minimumFractionDigits: 0,
+				}).format(number);
+			}
+
+			// --- CHECKOUT LOGIC ---
+			function showCheckoutModal() {
+				if (cart.length === 0) return;
+				const modal = document.getElementById('modal-checkout');
+				modal.classList.remove('hidden');
+				document.getElementById('modal-total-display').innerText =
+					formatRupiah(totalAmount);
+				document.getElementById('input-payment').value = '';
+				document.getElementById('change-display').innerText = 'Rp 0';
+
+				// Populate Order List
+				const listContainer =
+					document.getElementById('checkout-item-list');
+				listContainer.innerHTML = cart
+					.map(
+						item => `
+                <div class="flex justify-between items-center text-sm border-b border-gray-100 pb-2 last:border-0 last:pb-0">
+                    <div class="flex items-center gap-2">
+                        <span class="font-bold text-gray-700 bg-gray-100 px-2 py-0.5 rounded text-xs">${
+							item.qty
+						}x</span>
+                        <span class="text-gray-600 font-medium">${
+							item.name
+						}</span>
+                    </div>
+                    <span class="font-bold text-gray-900">${formatRupiah(
+						item.price * item.qty,
+					)}</span>
+                </div>
+            `,
+					)
+					.join('');
+			}
+
+			function closeCheckoutModal() {
+				document
+					.getElementById('modal-checkout')
+					.classList.add('hidden');
+			}
+
+			function toggleMobileCart() {
+				// Logic to show mobile cart / checkout (reuse modal for simplicity)
+				showCheckoutModal();
+			}
+
+			function setPayment(amount) {
+				document.getElementById('input-payment').value = amount;
+				calculateChange();
+			}
+
+			function calculateChange() {
+				const pay =
+					parseInt(document.getElementById('input-payment').value) ||
+					0;
+				const change = pay - totalAmount;
+				const display = document.getElementById('change-display');
+
+				if (change >= 0) {
+					display.innerText = formatRupiah(change);
+					display.classList.remove('text-red-500');
+					display.classList.add('text-green-700');
+				} else {
+					display.innerText =
+						'Kurang ' + formatRupiah(Math.abs(change));
+					display.classList.add('text-red-500');
+					display.classList.remove('text-green-700');
+				}
+			}
+
+			function processTransaction() {
+				const pay =
+					parseInt(document.getElementById('input-payment').value) ||
+					0;
+				const printReceipt =
+					document.getElementById('print-receipt').checked;
+
+				if (pay < totalAmount) {
+					Swal.fire({
+						icon: 'error',
+						title: 'Pembayaran Kurang',
+						text: 'Nominal uang tidak mencukupi total tagihan.',
+						confirmButtonColor: '#111827',
+					});
+					return;
+				}
+
+				// Close checkout modal
+				closeCheckoutModal();
+
+				// If print receipt checked, show receipt modal
+				if (printReceipt) {
+					showReceiptModal(pay);
+				} else {
+					// Just show success
+					showSuccessAlert();
+					cart = [];
+					updateCartUI();
+				}
+			}
+
+			// --- RECEIPT LOGIC ---
+			function showReceiptModal(payAmount) {
+				const modal = document.getElementById('modal-receipt');
+				const itemsContainer = document.getElementById('receipt-items');
+				const now = new Date();
+
+				// Populate Receipt Data
+				document.getElementById('receipt-date').innerText =
+					now.toLocaleDateString('id-ID');
+				document.getElementById('receipt-time').innerText =
+					now.toLocaleTimeString('id-ID', {
+						hour: '2-digit',
+						minute: '2-digit',
+					});
+
+				itemsContainer.innerHTML = cart
+					.map(
+						item => `
+                <div class="flex justify-between">
+                    <span>${item.name} x${item.qty}</span>
+                    <span>${formatRupiah(item.price * item.qty)}</span>
+                </div>
+            `,
+					)
+					.join('');
+
+				document.getElementById('receipt-subtotal').innerText =
+					formatRupiah(totalAmount);
+				document.getElementById('receipt-total').innerText =
+					formatRupiah(totalAmount);
+				document.getElementById('receipt-cash').innerText =
+					formatRupiah(payAmount);
+				document.getElementById('receipt-change').innerText =
+					formatRupiah(payAmount - totalAmount);
+
+				modal.classList.remove('hidden');
+			}
+
+			function closeReceiptModal() {
+				document
+					.getElementById('modal-receipt')
+					.classList.add('hidden');
+				showSuccessAlert();
+				cart = [];
+				updateCartUI();
+			}
+
+			function printReceiptReal() {
+				// Simulation
+				const btn = event.target;
+				const originalText = btn.innerHTML;
+				btn.innerHTML =
+					'<i class="fas fa-spinner fa-spin"></i> Mencetak...';
+				btn.disabled = true;
+
+				setTimeout(() => {
+					btn.innerHTML = originalText;
+					btn.disabled = false;
+					closeReceiptModal();
+				}, 1500);
+			}
+
+			function showSuccessAlert() {
+				Swal.fire({
+					icon: 'success',
+					title: 'Transaksi Selesai!',
+					text: isOnline
+						? 'Data tersimpan ke server.'
+						: 'Offline: Data tersimpan di perangkat.',
+					timer: 2000,
+					showConfirmButton: false,
+				});
+			}
+
+			// --- PRODUCT CRUD LOGIC ---
+			// Parameter opsional untuk mode edit (simulasi)
+			function showProductModal(
+				title = 'Tambah Produk Baru',
+				name = '',
+				category = 'Makanan',
+				price = '',
+			) {
+				document.getElementById('modal-product-title').innerText =
+					title;
+				document.getElementById('prod-name').value = name;
+				document.getElementById('prod-category').value = category;
+				document.getElementById('prod-price').value = price;
+
+				document
+					.getElementById('modal-product')
+					.classList.remove('hidden');
+			}
+
+			function closeProductModal() {
+				document
+					.getElementById('modal-product')
+					.classList.add('hidden');
+			}
+
+			function saveProduct() {
+				closeProductModal();
+				Swal.fire({
+					icon: 'success',
+					title: 'Produk Disimpan',
+					text: 'Data produk berhasil diperbarui di database.',
+					timer: 1500,
+					showConfirmButton: false,
+				});
+			}
+
+			// --- PROFILE EDIT LOGIC ---
+			function showProfileModal() {
+				document
+					.getElementById('modal-profile')
+					.classList.remove('hidden');
+			}
+
+			function closeProfileModal() {
+				document
+					.getElementById('modal-profile')
+					.classList.add('hidden');
+			}
+
+			function saveProfile() {
+				closeProfileModal();
+				Swal.fire({
+					icon: 'success',
+					title: 'Profil Diperbarui',
+					text: 'Data profil Anda berhasil disimpan.',
+					timer: 1500,
+					showConfirmButton: false,
+				});
+			}
+
+			// --- ONLINE/OFFLINE TOGGLE ---
+			function toggleOnline() {
+				isOnline = !isOnline;
+				const btn = document.getElementById('btn-status');
+				const texts = document.querySelectorAll('.app-status-text');
+
+				if (isOnline) {
+					btn.className =
+						'px-3 py-1.5 text-xs font-bold bg-green-100 text-green-700 rounded-full border border-green-200 flex items-center gap-2 transition hover:bg-green-200 cursor-pointer';
+					btn.innerHTML =
+						'<span class="w-2 h-2 rounded-full bg-green-600 animate-pulse"></span> Online';
+					texts.forEach(el => {
+						el.innerText = '● Online';
+						el.className =
+							'text-[10px] text-green-600 font-medium app-status-text';
+					});
+				} else {
+					btn.className =
+						'px-3 py-1.5 text-xs font-bold bg-gray-200 text-gray-600 rounded-full border border-gray-300 flex items-center gap-2 transition hover:bg-gray-300 cursor-pointer';
+					btn.innerHTML =
+						'<span class="w-2 h-2 rounded-full bg-gray-500"></span> Offline';
+					texts.forEach(el => {
+						el.innerText = '○ Offline Mode';
+						el.className =
+							'text-[10px] text-gray-500 font-medium app-status-text';
+					});
+				}
+			}
+		</script>
+	</body>
+</html>
